@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+httpx
+pydantic
+sqlalchemy
+asyncpg
+redis
+python-dotenv
+geopandas
+rasterio
+pandas
