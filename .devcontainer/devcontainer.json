@@ -1,0 +1,19 @@
+{
+    "name": "AstroBridge Dev Container",
+    "dockerComposeFile": "../docker-compose.yaml",
+    "service": "backend",
+    // "service": "frontend",
+    "workspaceFolder": "/workspace",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-docker",
+                "esbenp.prettier-vscode"
+            ],
+            "settings": {
+                "terminal.integrated.shell.linux": "/bin/bash"
+            }
+        }
+    },
+    "forwardPorts": [8000, 5173]
+}

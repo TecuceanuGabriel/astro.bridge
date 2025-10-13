@@ -8,12 +8,8 @@ services:
     depends_on:
       - db
       - redis
-    develop:
-      watch:
-        - action: sync+restart
-          path: ./backend
-          target: /app
-
+    volumes:
+      - ./backend:/workspace
 
   frontend:
     build: ./frontend
@@ -21,11 +17,11 @@ services:
       - "5173:5173"
     stdin_open: true
     tty: true
-    develop:
-      watch:
-        - action: sync
-          path: ./frontend
-          target: /app
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/workspace
+      - /workspace/node_modules
 
   db:
     image: postgis/postgis:15-3.3
