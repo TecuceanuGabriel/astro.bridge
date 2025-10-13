@@ -1,9 +1,6 @@
-version: '3.9'
-
 services:
   backend:
     build: ./backend
-    container_name: sapi_backend
     ports:
       - "8000:8000"
     env_file:
@@ -11,18 +8,27 @@ services:
     depends_on:
       - db
       - redis
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./backend
+          target: /app
+
 
   frontend:
     build: ./frontend
-    container_name: sapi_frontend
     ports:
       - "5173:5173"
     stdin_open: true
     tty: true
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
 
   db:
     image: postgis/postgis:15-3.3
-    container_name: sapi_postgis
     restart: always
     environment:
       POSTGRES_USER: postgres
@@ -35,7 +41,6 @@ services:
 
   redis:
     image: redis:alpine
-    container_name: sapi_redis
     ports:
       - "6379:6379"
 
