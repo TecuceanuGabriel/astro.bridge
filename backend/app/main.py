@@ -29,8 +29,8 @@ async def shutdown_event():
 @app.get("/")
 async def root():
     return {
-        "service": "Unified Satellite API",
-        "version": "1.0.0",
+        "service": app.title,
+        "version": app.version,
         "providers": list(registry.adapters.keys())
     }
 
@@ -68,3 +68,6 @@ async def list_providers():
         ]
     }
  
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True, reload_dirs=["/workspace"])

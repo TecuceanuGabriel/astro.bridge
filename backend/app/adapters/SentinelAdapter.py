@@ -17,8 +17,6 @@ class SentinelAdapter(SatelliteAPIAdapter):
         """Search Sentinel-2 imagery"""
         results = []
         
-        # Mock implementation - in production, use actual Sentinel Hub API
-        # This demonstrates the structure
         mock_results = self._generate_mock_sentinel_data(query)
         
         for item in mock_results:
