@@ -1,9 +1,12 @@
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 import httpx
+import requests
 
 from app.adapters.adapter import SatelliteAPIAdapter
 from app.db.models import UnifiedSatelliteImage, SearchQuery, SatelliteInfo
+
+ENDPOINT = "https://stac.dataspace.copernicus.eu/v1/search"
 
 class SentinelAdapter(SatelliteAPIAdapter):
     """Adapter for Sentinel Hub API (requires authentication)"""
@@ -15,11 +18,21 @@ class SentinelAdapter(SatelliteAPIAdapter):
     
     async def search(self, query: SearchQuery) -> List[UnifiedSatelliteImage]:
         """Search Sentinel-2 imagery"""
-        results = []
         
-        mock_results = self._generate_mock_sentinel_data(query)
+        results = requests.post(ENDPOINT, json={
+            "bbox": query.bbox,
+            "datetime": f"{query.date_range.start.isoformat()}/{query.date_range.end.isoformat()}",
+            "limit": query.max_results or 10,
+            "query": {
+                "eo:cloud_cover": {
+                    "lte": query.max_cloud_coverage or 100
+                }
+            }
+        }).json().get("features", [])
         
-        for item in mock_results:
+        # mock_results = self._generate_mock_sentinel_data(query)
+        
+        for item in results:
             age_days = (datetime.now() - item["timestamp"]).days
             
             unified_image = UnifiedSatelliteImage(
