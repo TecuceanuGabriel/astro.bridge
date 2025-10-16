@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router
-from app.core.db import Base, engine
+from app.core.db import Base, engine, get_db
+from .worker import start_scheduler
 
 Base.metadata.create_all(bind=engine)
 
@@ -15,5 +16,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+async def startup_event():
+    start_scheduler()
+
 
 app.include_router(router)

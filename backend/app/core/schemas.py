@@ -81,7 +81,7 @@ class TLE(Base):
     object_type = Column(String(12))
     classification_type = Column(String(1), nullable=False)
     intldes = Column(String(8))
-    epoch = Column(DateTime, nullable=False, index=True)
+    epoch = Column(DateTime, nullable=False, index=True, default=datetime.utcnow)
     epoch_microseconds = Column(INTEGER(unsigned=True), nullable=False, default=0)
     mean_motion = Column(Double, nullable=False, default=0)
     eccentricity = Column(Double, nullable=False, default=0)
