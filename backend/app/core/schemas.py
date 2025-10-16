@@ -1,18 +1,23 @@
+from re import I
 from sqlalchemy import (
     Column,
-    Integer,
     String,
-    Float,
+    Enum,
+    Double,
     DateTime,
-    Text,
-    JSON,
-    Boolean,
-    NUMERIC,
-    BigInteger,
+    Date,
     ForeignKey,
-    Index,
     UniqueConstraint,
 )
+
+from sqlalchemy.dialects.mysql import (
+    INTEGER,
+    DECIMAL,
+    FLOAT,
+    BIGINT,
+    SMALLINT,
+)
+
 from datetime import datetime
 
 from app.core.db import Base
@@ -20,30 +25,89 @@ from app.core.db import Base
 
 class Satellite(Base):
     __tablename__ = "satellites"
-    
-    id = Column(Integer, primary_key=True)
-    norad_id = Column(String(20), unique=True, nullable=False, index=True)
-    name = Column(String(255), nullable=False, index=True)
-    country = Column(String(100))
-    satellite_number = Column(String(50))
-    mission_type = Column(String(100))
-    status = Column(String(50), default="active", index=True)
-    launch_date = Column(DateTime)
-    decay_date = Column(DateTime)
+
+    id = Column(INTEGER(unsigned=True), primary_key=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # --- SATCAT fields ---
+    intldes = Column(String(12), nullable=False)
+    norad_cat_id = Column(
+        INTEGER(unsigned=True), unique=True, index=True, nullable=True
+    )
+    object_type = Column(String(12))
+    satname = Column(String(25), nullable=False, index=True)
+    country = Column(String(6), nullable=False)
+    launch = Column(Date)
+    site = Column(String(5))
+    decay = Column(Date)
+    period = Column(DECIMAL(12, 2))
+    inclination = Column(DECIMAL(12, 2))
+    apogee = Column(BIGINT(unsigned=True))
+    perigee = Column(BIGINT(unsigned=True))
+    comment = Column(String(32))
+    commentcode = Column(SMALLINT(unsigned=True))
+    rcsvalue = Column(INTEGER, default=0, nullable=False)
+    rcs_size = Column(String(6))
+    file = Column(SMALLINT(unsigned=True), default=0, nullable=False)
+    launch_year = Column(SMALLINT(unsigned=True), default=0, nullable=False)
+    launch_num = Column(SMALLINT(unsigned=True), default=0, nullable=False)
+    launch_piece = Column(String(3), nullable=False)
+    current = Column(Enum("Y", "N", name="current_status"), default="N", nullable=False)
+    object_name = Column(String(25), nullable=False)
+    object_id = Column(String(12), nullable=False)
+    object_number = Column(INTEGER(unsigned=True))
+
+
 class TLE(Base):
     __tablename__ = "tle_history"
-    
-    id = Column(Integer, primary_key=True)
-    satellite_id = Column(Integer, ForeignKey("satellites.id", ondelete="CASCADE"), index=True, nullable=False)
-    tle_line_1 = Column(Text, nullable=False)
-    tle_line_2 = Column(Text, nullable=False)
-    epoch = Column(DateTime, nullable=False, index=True)
+
+    id = Column(INTEGER(unsigned=True), primary_key=True)
     fetched_at = Column(DateTime, default=datetime.utcnow, index=True)
-    source = Column(String(50), default="space-track")
-    
+
+    # --- Relationship to Satellite ---
+    satellite_id = Column(
+        INTEGER(unsigned=True),
+        ForeignKey("satellites.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
+    )
+
+    # --- TLE standard fields ---
+    comment = Column(String(32), nullable=False)
+    originator = Column(String(7), nullable=False)
+    norad_cat_id = Column(INTEGER(unsigned=True), index=True)
+    object_name = Column(String(25), nullable=False)
+    object_type = Column(String(12))
+    classification_type = Column(String(1), nullable=False)
+    intldes = Column(String(8))
+    epoch = Column(DateTime, nullable=False, index=True)
+    epoch_microseconds = Column(INTEGER(unsigned=True), nullable=False, default=0)
+    mean_motion = Column(Double, nullable=False, default=0)
+    eccentricity = Column(Double, nullable=False, default=0)
+    inclination = Column(Double, nullable=False, default=0)
+    ra_of_asc_node = Column(Double, nullable=False, default=0)
+    arg_of_pericenter = Column(Double, nullable=False, default=0)
+    mean_anomaly = Column(Double, nullable=False, default=0)
+    ephemeris_type = Column(SMALLINT(unsigned=True), nullable=False, default=0)
+    element_set_no = Column(SMALLINT(unsigned=True), nullable=False, default=0)
+    rev_at_epoch = Column(FLOAT, nullable=False, default=0)
+    bstar = Column(Double, nullable=False, default=0)
+    mean_motion_dot = Column(Double, nullable=False, default=0)
+    mean_motion_ddot = Column(Double, nullable=False, default=0)
+    file = Column(INTEGER(unsigned=True), nullable=False, default=0)
+    tle_line0 = Column(String(27), nullable=False)
+    tle_line1 = Column(String(71), nullable=False)
+    tle_line2 = Column(String(71), nullable=False)
+    object_id = Column(String(11))
+    object_number = Column(INTEGER(unsigned=True))
+    semimajor_axis = Column(DECIMAL(20, 3), nullable=False, default=0.000)
+    period = Column(DECIMAL(20, 3))
+    apogee = Column(DECIMAL(20, 3), nullable=False, default=0.000)
+    perigee = Column(DECIMAL(20, 3), nullable=False, default=0.000)
+    decayed = Column(SMALLINT(unsigned=True), default=0)
+
+    # --- Constraints ---
     __table_args__ = (
-        UniqueConstraint('satellite_id', 'epoch', name='idx_tle_unique_per_satellite'),
+        UniqueConstraint("satellite_id", "epoch", name="idx_tle_unique_per_satellite"),
     )

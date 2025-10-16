@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.db import get_db
-from app.db.models_db import Satellite
+from app.core.schemas import Satellite
 
 router = APIRouter()
 
@@ -28,7 +28,15 @@ async def get_satellites(db: Session = Depends(get_db)):
 
 @router.post("/satellites")
 async def create_satellite(db: Session = Depends(get_db)):
-    mock_satellite = Satellite(norad_id=1, name="Mock Satellite")
+    mock_satellite = Satellite(
+        intldes="2025-001A",
+        satname="MockSat-1",
+        country="USA",
+        launch_piece="A",
+        current="Y",
+        object_name="MockSat-1",
+        object_id="2025-001A",
+    )
     db.add(mock_satellite)
     db.commit()
     db.refresh(mock_satellite)
