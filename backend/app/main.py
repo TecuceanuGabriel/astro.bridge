@@ -4,10 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router
 from app.core.db import Base, engine
 
-# Create all tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(title="AstroBridge", version="0.0.1", description="")
 
 app.add_middleware(
     CORSMiddleware,
