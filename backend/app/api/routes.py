@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
 
 from app.core.db import get_db
-from app.core.schemas import Satellite
+from app.core.schemas import Satellite, TLE, RF
 
 router = APIRouter()
 
@@ -26,18 +25,13 @@ async def get_satellites(db: Session = Depends(get_db)):
     return satellites
 
 
-@router.post("/satellites")
-async def create_satellite(db: Session = Depends(get_db)):
-    mock_satellite = Satellite(
-        intldes="2025-001A",
-        satname="MockSat-1",
-        country="USA",
-        launch_piece="A",
-        current="Y",
-        object_name="MockSat-1",
-        object_id="2025-001A",
-    )
-    db.add(mock_satellite)
-    db.commit()
-    db.refresh(mock_satellite)
-    return mock_satellite
+@router.get("/tles")
+async def get_tles(db: Session = Depends(get_db)):
+    tles = db.query(TLE).all()
+    return tles
+
+
+@router.get("/rfs")
+async def get_rf(db: Session = Depends(get_db)):
+    rf = db.query(RF).all()
+    return rf
