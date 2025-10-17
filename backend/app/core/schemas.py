@@ -179,7 +179,27 @@ class RF(Base):
 
     updated = Column(DateTime, nullable=True)
     citation = Column(String(512), nullable=True)
-    service = Column(String(100), nullable=True)
+
+    service = Column(
+        Enum(
+            "Aeronautical",
+            "Amateur",
+            "Broadcasting",
+            "Earth Exploration",
+            "Fixed",
+            "Inter-satellite",
+            "Maritime",
+            "Meteorological",
+            "Mobile",
+            "Radiolocation",
+            "Radionavigational",
+            "Space Operation",
+            "Space Research",
+            "Standard Frequency and Time Signal",
+            "Unknown",
+        ),
+        nullable=True,
+    )
 
     iaru_coordination = Column(
         Enum("IARU Coordinated", "IARU Declined", "IARU Uncoordinated", "N/A"),
