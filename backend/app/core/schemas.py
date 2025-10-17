@@ -1,4 +1,3 @@
-import dis
 from re import I
 from sqlalchemy import (
     Column,
@@ -65,7 +64,9 @@ class Satellite(Base):
     )
     launch_piece = Column(String(3), nullable=False)
 
-    current = Column(Enum("Y", "N", name="current_status"), default="N", nullable=False)
+    current = Column(
+        Enum("Y", "N", name="sat_current_entry"), default="N", nullable=False
+    )
 
     object_name = Column(String(25), nullable=False)
     object_id = Column(String(12), nullable=False)
@@ -73,12 +74,12 @@ class Satellite(Base):
 
 
 class TLE(Base):
-    __tablename__ = "tle_history"
+    __tablename__ = "tles"
 
     id = Column(INTEGER(unsigned=True), primary_key=True)
     fetched_at = Column(DateTime, default=datetime.utcnow, index=True)
 
-    # --- Relationship to Satellite ---
+    # --- relationship to satellite ---
     satellite_id = Column(
         INTEGER(unsigned=True),
         ForeignKey("satellites.id", ondelete="CASCADE"),
@@ -135,28 +136,38 @@ class TLE(Base):
 
     decayed = Column(SMALLINT(unsigned=True), default=0)
 
-    # --- Constraints ---
-    __table_args__ = (
-        UniqueConstraint("satellite_id", "epoch", name="idx_tle_unique_per_satellite"),
-    )
+    # --- constraints ---
+    # __table_args__ = (
+    #     UniqueConstraint("satellite_id", "epoch", name="idx_tle_unique_per_satellite"),
+    # )
 
 
 class RF(Base):
-    __tablename__ = "rf"
+    __tablename__ = "rfs"
 
     id = Column(INTEGER(unsigned=True), primary_key=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # Foreign key to satellite
+    # --- Relationship to Satellite ---
     satellite_id = Column(
-        INTEGER(unsigned=True), ForeignKey("satellites.id"), nullable=False
+        INTEGER(unsigned=True),
+        ForeignKey("satellites.id", ondelete="CASCADE"),
+        nullable=False,
     )
 
-    # SatNOGS Transmitter API fields
-    uuid = Column(String(36), nullable=False, unique=True)  # UUID string
+    # --- SatNOGS Transmitter API fields ---
+    uuid = Column(String(36), nullable=False, unique=True)
     description = Column(String(255), nullable=False)
     alive = Column(Boolean, nullable=False)
-    type = Column(Enum("Transmitter", "Transceiver", "Transponder"), nullable=True)
+    type = Column(
+        Enum(
+            "Transmitter",
+            "Transceiver",
+            "Transponder",
+            name="transmitter_rf_type",
+        ),
+        nullable=True,
+    )
 
     uplink_low = Column(BIGINT, nullable=True)
     uplink_high = Column(BIGINT, nullable=True)
@@ -165,9 +176,9 @@ class RF(Base):
     downlink_high = Column(BIGINT, nullable=True)
     downlink_drift = Column(INTEGER, nullable=True)
 
-    mode = Column(INTEGER, nullable=True)
+    mode = Column(String(50), nullable=True)
     mode_id = Column(INTEGER, nullable=True)
-    uplink_mode = Column(INTEGER, nullable=True)
+    uplink_mode = Column(String(50), nullable=True)
     invert = Column(Boolean, default=False)
     baud = Column(FLOAT, nullable=True)
 
@@ -175,7 +186,9 @@ class RF(Base):
     sat_id = Column(String(50), nullable=True)
     norad_follow_id = Column(BIGINT, nullable=True)
 
-    status = Column(Enum("active", "inactive", "invalid"), nullable=True)
+    status = Column(
+        Enum("active", "inactive", "invalid", name="transmitter_status"), nullable=True
+    )
 
     updated = Column(DateTime, nullable=True)
     citation = Column(String(512), nullable=True)
@@ -197,12 +210,19 @@ class RF(Base):
             "Space Research",
             "Standard Frequency and Time Signal",
             "Unknown",
+            name="transmitter_service",
         ),
         nullable=True,
     )
 
     iaru_coordination = Column(
-        Enum("IARU Coordinated", "IARU Declined", "IARU Uncoordinated", "N/A"),
+        Enum(
+            "IARU Coordinated",
+            "IARU Declined",
+            "IARU Uncoordinated",
+            "N/A",
+            name="transmitter_iaru_coordination",
+        ),
         nullable=True,
     )
     iaru_coordination_url = Column(String(200), nullable=True)
@@ -210,7 +230,7 @@ class RF(Base):
     frequency_violation = Column(Boolean, default=False)
     unconfirmed = Column(Boolean, default=False)
 
-    # constraints
-    __table_args__ = (
-        UniqueConstraint("satellite_id", name="idx_rf_unique_per_satellite"),
-    )
+    # # --- constraints ---
+    # __table_args__ = (
+    #     UniqueConstraint("satellite_id", name="idx_rf_unique_per_satellite"),
+    # )
